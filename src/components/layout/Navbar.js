@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -33,17 +33,27 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleProfileMenuOpen = (event) => {
+  const handleProfileMenuOpen = useCallback((event) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleProfileMenuClose = () => {
+  const handleProfileMenuClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
 
-  const handleMobileMenuToggle = () => {
+  const handleMobileMenuToggle = useCallback(() => {
     setMobileMenuOpen(!mobileMenuOpen);
-  };
+  }, [mobileMenuOpen]);
+
+  const handleMobileMenuClose = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
+
+  const handleNavigation = useCallback((path) => {
+    navigate(path);
+    handleProfileMenuClose();
+    handleMobileMenuClose();
+  }, [navigate]);
 
   const menuItems = [
     { text: 'Whiskey', path: '/whiskey' },
@@ -56,7 +66,8 @@ const Navbar = () => {
     <Drawer
       anchor="right"
       open={mobileMenuOpen}
-      onClose={handleMobileMenuToggle}
+      onClose={handleMobileMenuClose}
+      keepMounted
     >
       <Box sx={{ width: 250 }}>
         <List>
@@ -64,9 +75,7 @@ const Navbar = () => {
             <ListItem
               button
               key={item.text}
-              component={RouterLink}
-              to={item.path}
-              onClick={handleMobileMenuToggle}
+              onClick={() => handleNavigation(item.path)}
             >
               <ListItemText primary={item.text} />
             </ListItem>
@@ -82,8 +91,7 @@ const Navbar = () => {
         <Button
           key={item.text}
           color="inherit"
-          component={RouterLink}
-          to={item.path}
+          onClick={() => handleNavigation(item.path)}
           sx={{ mx: 1 }}
         >
           {item.text}
@@ -113,8 +121,7 @@ const Navbar = () => {
 
         <IconButton
           color="inherit"
-          component={RouterLink}
-          to="/cart"
+          onClick={() => handleNavigation('/cart')}
         >
           <Badge badgeContent={cartItems.length} color="secondary">
             <ShoppingCart />
@@ -156,28 +163,15 @@ const Navbar = () => {
               minWidth: 180,
             }
           }}
-          onTransitionEnd={() => {
-            if (!Boolean(anchorEl)) {
-              setAnchorEl(null);
-            }
-          }}
+          keepMounted
         >
-          <MenuItem onClick={() => {
-            navigate('/profile');
-            handleProfileMenuClose();
-          }}>
+          <MenuItem onClick={() => handleNavigation('/profile')}>
             Profile
           </MenuItem>
-          <MenuItem onClick={() => {
-            navigate('/orders');
-            handleProfileMenuClose();
-          }}>
+          <MenuItem onClick={() => handleNavigation('/orders')}>
             Orders
           </MenuItem>
-          <MenuItem onClick={() => {
-            navigate('/wishlist');
-            handleProfileMenuClose();
-          }}>
+          <MenuItem onClick={() => handleNavigation('/wishlist')}>
             Wishlist
           </MenuItem>
           <MenuItem onClick={handleProfileMenuClose}>Logout</MenuItem>
