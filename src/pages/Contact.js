@@ -108,188 +108,211 @@ const Contact = () => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
-      <Grid container spacing={6}>
-        {/* Contact Form Section */}
-        <Grid item xs={12} md={6}>
-          <Typography
-            variant="h3"
-            gutterBottom
-            sx={{ fontFamily: 'Playfair Display' }}
-          >
-            Get in Touch
-          </Typography>
-          <Paper elevation={3} sx={{ p: 4 }}>
-            <form onSubmit={formik.handleSubmit}>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    name="name"
-                    label="Your Name"
-                    value={formik.values.name}
-                    onChange={formik.handleChange}
-                    error={formik.touched.name && Boolean(formik.errors.name)}
-                    helperText={formik.touched.name && formik.errors.name}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    name="email"
-                    label="Email Address"
-                    value={formik.values.email}
-                    onChange={formik.handleChange}
-                    error={formik.touched.email && Boolean(formik.errors.email)}
-                    helperText={formik.touched.email && formik.errors.email}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    name="subject"
-                    label="Subject"
-                    value={formik.values.subject}
-                    onChange={formik.handleChange}
-                    error={formik.touched.subject && Boolean(formik.errors.subject)}
-                    helperText={formik.touched.subject && formik.errors.subject}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={4}
-                    name="message"
-                    label="Message"
-                    value={formik.values.message}
-                    onChange={formik.handleChange}
-                    error={formik.touched.message && Boolean(formik.errors.message)}
-                    helperText={formik.touched.message && formik.errors.message}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                  >
-                    Send Message
-                  </Button>
-                </Grid>
-              </Grid>
-            </form>
-          </Paper>
-        </Grid>
+    <Box sx={{ 
+      pt: { xs: '80px', sm: '100px' }, // Add top padding to account for fixed navbar
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 4, sm: 6, md: 8 } }}>
+        <Typography
+          variant="h2"
+          gutterBottom
+          sx={{
+            fontFamily: 'Playfair Display',
+            textAlign: 'center',
+            mb: { xs: 4, sm: 6 },
+            fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
+          }}
+        >
+          Contact Us
+        </Typography>
 
-        {/* Contact Information */}
-        <Grid item xs={12} md={6}>
-          <Typography
-            variant="h3"
-            gutterBottom
-            sx={{ fontFamily: 'Playfair Display' }}
-          >
-            Contact Information
-          </Typography>
-          <Card sx={{ mb: 4 }}>
-            <CardContent>
-              <List>
-                <ListItem>
-                  <ListItemIcon>
-                    <LocationOn color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Main Store"
-                    secondary="123 Wine Street, Central District"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Phone color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Phone"
-                    secondary="(555) 123-4567"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemIcon>
-                    <Email color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Email"
-                    secondary="info@wineandwhiskeyhaven.com"
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
+        <Grid container spacing={4}>
+          {/* Contact Form */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+              <form onSubmit={formik.handleSubmit}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="name"
+                      label="Your Name"
+                      value={formik.values.name}
+                      onChange={formik.handleChange}
+                      error={formik.touched.name && Boolean(formik.errors.name)}
+                      helperText={formik.touched.name && formik.errors.name}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="email"
+                      label="Email Address"
+                      value={formik.values.email}
+                      onChange={formik.handleChange}
+                      error={formik.touched.email && Boolean(formik.errors.email)}
+                      helperText={formik.touched.email && formik.errors.email}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="subject"
+                      label="Subject"
+                      value={formik.values.subject}
+                      onChange={formik.handleChange}
+                      error={formik.touched.subject && Boolean(formik.errors.subject)}
+                      helperText={formik.touched.subject && formik.errors.subject}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      name="message"
+                      label="Message"
+                      value={formik.values.message}
+                      onChange={formik.handleChange}
+                      error={formik.touched.message && Boolean(formik.errors.message)}
+                      helperText={formik.touched.message && formik.errors.message}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      size="large"
+                      fullWidth
+                    >
+                      Send Message
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
+            </Paper>
+          </Grid>
 
-          {/* Social Media */}
-          <Typography variant="h6" gutterBottom>
-            Follow Us
-          </Typography>
-          <Box sx={{ mb: 4 }}>
-            {socialMedia.map((social) => (
-              <Button
-                key={social.name}
-                startIcon={social.icon}
-                href={social.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{ mr: 2, mb: 2 }}
+          {/* Contact Information */}
+          <Grid item xs={12} md={6}>
+            <Box sx={{ mb: { xs: 4, sm: 6 } }}>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  fontFamily: 'Playfair Display',
+                  mb: 3,
+                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
+                }}
               >
-                {social.name}
-              </Button>
-            ))}
-          </Box>
+                Get in Touch
+              </Typography>
+              <Card sx={{ mb: 4 }}>
+                <CardContent>
+                  <List>
+                    <ListItem>
+                      <ListItemIcon>
+                        <LocationOn color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Main Store"
+                        secondary="123 Wine Street, Central District"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Phone color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Phone"
+                        secondary="(555) 123-4567"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        <Email color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary="Email"
+                        secondary="info@wineandwhiskeyhaven.com"
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
 
-          {/* Business Hours */}
-          <Typography variant="h6" gutterBottom>
-            Business Hours
-          </Typography>
-          <Card sx={{ mb: 4 }}>
-            <CardContent>
-              <List dense>
-                <ListItem>
-                  <ListItemText
-                    primary="Monday - Saturday"
-                    secondary="10:00 AM - 8:00 PM"
-                  />
-                </ListItem>
-                <ListItem>
-                  <ListItemText
-                    primary="Sunday"
-                    secondary="12:00 PM - 6:00 PM"
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+              {/* Social Media */}
+              <Typography variant="h6" gutterBottom>
+                Follow Us
+              </Typography>
+              <Box sx={{ mb: 4 }}>
+                {socialMedia.map((social) => (
+                  <Button
+                    key={social.name}
+                    startIcon={social.icon}
+                    href={social.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ mr: 2, mb: 2 }}
+                  >
+                    {social.name}
+                  </Button>
+                ))}
+              </Box>
 
-        {/* FAQ Section */}
-        <Grid item xs={12}>
-          <Typography
-            variant="h3"
-            gutterBottom
-            sx={{ fontFamily: 'Playfair Display', mt: 4 }}
-          >
-            Frequently Asked Questions
-          </Typography>
-          {faqs.map((faq, index) => (
-            <Accordion key={index}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography variant="h6">{faq.question}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography>{faq.answer}</Typography>
-              </AccordionDetails>
-            </Accordion>
-          ))}
+              {/* Business Hours */}
+              <Typography variant="h6" gutterBottom>
+                Business Hours
+              </Typography>
+              <Card sx={{ mb: 4 }}>
+                <CardContent>
+                  <List dense>
+                    <ListItem>
+                      <ListItemText
+                        primary="Monday - Saturday"
+                        secondary="10:00 AM - 8:00 PM"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText
+                        primary="Sunday"
+                        secondary="12:00 PM - 6:00 PM"
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Box>
+
+            {/* FAQ Section */}
+            <Box sx={{ mt: { xs: 4, sm: 6 } }}>
+              <Typography
+                variant="h4"
+                gutterBottom
+                sx={{
+                  fontFamily: 'Playfair Display',
+                  mb: 3,
+                  fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' }
+                }}
+              >
+                Frequently Asked Questions
+              </Typography>
+              {faqs.map((faq, index) => (
+                <Accordion key={index}>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Typography variant="h6">{faq.question}</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Typography>{faq.answer}</Typography>
+                  </AccordionDetails>
+                </Accordion>
+              ))}
+            </Box>
+          </Grid>
         </Grid>
-      </Grid>
+      </Container>
 
       <Snackbar
         open={snackbar.open}
@@ -304,7 +327,7 @@ const Contact = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 
