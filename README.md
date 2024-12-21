@@ -1,6 +1,6 @@
-# Whiskey E-commerce Website
+# Wine & Whiskey Haven
 
-A modern e-commerce website built with React and Firebase, featuring a whiskey product catalog with detailed product information, shopping cart functionality, and user authentication.
+A modern e-commerce website built with React and Firebase, featuring a curated collection of fine wines and premium whiskeys. The platform offers detailed product information, shopping cart functionality, and user authentication.
 
 ## Technologies Used
 
@@ -12,11 +12,13 @@ A modern e-commerce website built with React and Firebase, featuring a whiskey p
 ## Features
 
 - Responsive design for mobile and desktop
-- Product catalog with detailed product pages
-- User authentication
+- Extensive wine and whiskey catalog with detailed product pages
+- User authentication and profile management
 - Shopping cart functionality
+- Wishlist feature
 - About page
 - Admin dashboard for product management
+- Secure checkout process
 
 ## Getting Started
 
@@ -37,8 +39,8 @@ A modern e-commerce website built with React and Firebase, featuring a whiskey p
   - `/components` - Reusable React components
   - `/pages` - Main page components
   - `/firebase` - Firebase configuration and services
-  - `/context` - React context providers
-  - `/styles` - Global styles and theme
+  - `/redux` - State management
+  - `/theme` - Global styles and theme
 
 ## Contributing
 
