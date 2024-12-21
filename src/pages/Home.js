@@ -13,10 +13,12 @@ import {
   IconButton,
   Paper,
   CircularProgress,
+  Snackbar,
 } from '@mui/material';
 import { AddShoppingCart, Favorite } from '@mui/icons-material';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addToCart } from '../redux/slices/cartSlice';
+import { toggleWishlist } from '../redux/slices/wishlistSlice';
 import { getProducts, updateProductImages } from '../firebase/services';
 
 const Home = () => {
@@ -25,6 +27,8 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '' });
+  const wishlistItems = useSelector((state) => state.wishlist.items);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -80,6 +84,15 @@ const Home = () => {
 
   const handleAddToCart = (product) => {
     dispatch(addToCart({ ...product, quantity: 1 }));
+    setSnackbar({ open: true, message: `${product.name} added to cart` });
+  };
+
+  const handleToggleWishlist = (product) => {
+    dispatch(toggleWishlist(product));
+    const message = wishlistItems.some(item => item.id === product.id)
+      ? `${product.name} removed from wishlist`
+      : `${product.name} added to wishlist`;
+    setSnackbar({ open: true, message });
   };
 
   if (loading) {
@@ -202,23 +215,19 @@ const Home = () => {
                     ${product.price.toFixed(2)}
                   </Typography>
                 </CardContent>
-                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-                  <Button
-                    size="small"
-                    onClick={() => navigate(`/product/${product.id}`)}
-                  >
-                    View Details
-                  </Button>
+                <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
                   <Box>
                     <IconButton
-                      aria-label="add to favorites"
-                      sx={{ mr: 1 }}
+                      onClick={() => handleToggleWishlist(product)}
+                      color={wishlistItems.some((item) => item.id === product.id) ? 'primary' : 'default'}
+                      aria-label={`${wishlistItems.some((item) => item.id === product.id) ? 'Remove from' : 'Add to'} wishlist`}
                     >
                       <Favorite />
                     </IconButton>
                     <IconButton
-                      aria-label="add to cart"
                       onClick={() => handleAddToCart(product)}
+                      color="primary"
+                      aria-label={`Add ${product.name} to cart`}
                     >
                       <AddShoppingCart />
                     </IconButton>
@@ -229,6 +238,12 @@ const Home = () => {
           ))}
         </Grid>
       </Container>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        message={snackbar.message}
+      />
     </Box>
   );
 };

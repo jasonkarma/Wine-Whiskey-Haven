@@ -1,29 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
+  Box,
+  Typography,
   Grid,
   Card,
-  CardMedia,
   CardContent,
   CardActions,
-  Typography,
-  Button,
   IconButton,
-  Box,
+  Button,
   CircularProgress,
+  Tabs,
+  Tab,
   Snackbar,
-  Alert,
-  TextField,
-  InputAdornment,
-  Chip,
+  Skeleton
 } from '@mui/material';
-import { AddShoppingCart, Favorite, Search, FilterList } from '@mui/icons-material';
-import { useDispatch, useSelector } from 'react-redux';
+import { AddShoppingCart, Favorite } from '@mui/icons-material';
+import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import { getProducts } from '../firebase/services';
 import { addToCart } from '../redux/slices/cartSlice';
 import { toggleWishlist } from '../redux/slices/wishlistSlice';
-import { getProducts, updateProductImages } from '../firebase/services';
-import { motion } from 'framer-motion';
+import { isIOSDevice, setupIOSHandlers, cleanupIOSHandlers } from '../utils/iosHelpers';
+import PageContainer from '../components/layout/PageContainer';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import 'react-lazy-load-image-component/src/effects/blur.css';
 
 const WineMenu = () => {
   const navigate = useNavigate();
@@ -31,70 +33,32 @@ const WineMenu = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const wishlist = useSelector((state) => state.wishlist.items);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '' });
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const wishlistItems = useSelector((state) => state.wishlist.items);
 
-  // Fetch products with error handling and logging
   useEffect(() => {
     const fetchWines = async () => {
       try {
-        console.log('Fetching wine products...');
         setLoading(true);
-        
-        // Pre-load images before showing content
-        const preloadImage = (url) => {
-          return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = resolve;
-            img.onerror = reject;
-            img.src = url;
-          });
-        };
-        
-        // Update product images if needed
-        await updateProductImages();
-        
-        // Fetch products again to get updated image URLs
         const allProducts = await getProducts();
         
-        // Create a Map to store unique products
-        const uniqueProducts = new Map();
-        
-        // First pass: collect all products and keep the one with valid image
+        // Create a Map to ensure unique products by ID
+        const uniqueProductsMap = new Map();
         allProducts.forEach(product => {
-          if (product?.category === 'wine') {
-            const key = `${product.name}-${product.category}`.toLowerCase();
-            const existingProduct = uniqueProducts.get(key);
-            
-            // Always use the product with a valid image URL
-            if (!existingProduct || 
-                (product.imageUrl && (!existingProduct.imageUrl || existingProduct.imageUrl.includes('undefined')))) {
-              uniqueProducts.set(key, {
-                ...product,
-                imageUrl: product.imageUrl || 'https://i.ibb.co/GCzqbVn/cabernet.png'
-              });
-            }
+          if (['red', 'white', 'rose', 'sparkling'].includes(product.category)) {
+            uniqueProductsMap.set(product.id, product);
           }
         });
         
-        const wines = Array.from(uniqueProducts.values())
-          .filter(product => product.imageUrl && !product.imageUrl.includes('undefined'));
-        
-        // Preload all images
-        await Promise.all(
-          wines.map(wine => preloadImage(wine.imageUrl))
-        );
-        
-        console.log(`Successfully fetched ${wines.length} unique wines with images:`, 
-          wines.map(w => `${w.name} (${w.imageUrl})`));
-        
+        // Convert Map back to array
+        const wines = Array.from(uniqueProductsMap.values());
         setProducts(wines);
-        setError(null);
-      } catch (error) {
-        console.error('Error fetching wines:', error);
-        setError('Failed to load wine products. Please try again later.');
+        setError('');
+      } catch (err) {
+        console.error('Error fetching wines:', err);
+        setError(err.message);
+        toast.error('Failed to load wines');
       } finally {
         setLoading(false);
       }
@@ -103,182 +67,218 @@ const WineMenu = () => {
     fetchWines();
   }, []);
 
-  // Filter products based on search and type
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = selectedType === 'all' || product.type === selectedType;
-    return matchesSearch && matchesType;
-  });
-
-  // Handle cart operations with feedback
-  const handleAddToCart = (product) => {
-    try {
-      dispatch(addToCart({ ...product, quantity: 1 }));
-      setSnackbar({
-        open: true,
-        message: `${product.name} added to cart`,
-        severity: 'success'
-      });
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      setSnackbar({
-        open: true,
-        message: 'Failed to add item to cart',
-        severity: 'error'
-      });
+  // Handle mobile-specific setup
+  useEffect(() => {
+    if (isIOSDevice()) {
+      setupIOSHandlers();
     }
+    return () => {
+      if (isIOSDevice()) {
+        cleanupIOSHandlers();
+      }
+    };
+  }, []);
+
+  const handleCategoryChange = (category) => {
+    setSelectedCategory(category);
   };
 
-  // Handle wishlist operations
+  const handleViewDetails = (productId) => {
+    navigate(`/product/${productId}`);
+  };
+
+  const handleAddToCart = (product) => {
+    dispatch(addToCart({ ...product, quantity: 1 }));
+    setSnackbar({ open: true, message: `${product.name} added to cart` });
+    toast.success('Added to cart!');
+  };
+
   const handleToggleWishlist = (product) => {
     dispatch(toggleWishlist(product));
-    setSnackbar({
-      open: true,
-      message: `${product.name} ${wishlist.some(item => item.id === product.id) ? 'removed from' : 'added to'} wishlist`,
-      severity: 'success'
-    });
+    const message = wishlistItems.some(item => item.id === product.id)
+      ? `${product.name} removed from wishlist`
+      : `${product.name} added to wishlist`;
+    setSnackbar({ open: true, message });
+    toast.success(message);
   };
 
-  // Loading state with animation
+  const filteredProducts = selectedCategory === 'all'
+    ? products
+    : products.filter(product => product.category === selectedCategory);
+
+  const handleImageError = (e) => {
+    e.target.onerror = null;
+    e.target.src = 'https://via.placeholder.com/300x400?text=Image+Not+Found';
+  };
+
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="60vh">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <CircularProgress />
-        </motion.div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
       </Box>
     );
   }
 
-  // Error state with retry option
   if (error) {
     return (
-      <Box display="flex" flexDirection="column" alignItems="center" gap={2} minHeight="60vh" pt={4}>
-        <Alert severity="error">{error}</Alert>
-        <Button variant="contained" onClick={() => window.location.reload()}>
-          Retry
-        </Button>
-      </Box>
+      <Typography color="error" align="center">{error}</Typography>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box mb={4}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Wine Selection
-        </Typography>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search wines..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
+    <PageContainer maxWidth="xl">
+      <Box 
+        sx={{ 
+          width: '100%',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'none'
+        }}
+      >
+        <Typography
+          component={motion.h1}
+          variant="h3"
+          align="center"
+          gutterBottom
+          sx={{
+            fontFamily: 'Playfair Display',
+            mb: 4,
           }}
-          sx={{ mb: 2 }}
-        />
-        <Box display="flex" gap={1} mb={2}>
-          {['all', 'red', 'white', 'rose', 'sparkling'].map((type) => (
-            <Chip
-              key={type}
-              label={type.charAt(0).toUpperCase() + type.slice(1)}
-              onClick={() => setSelectedType(type)}
-              color={selectedType === type ? 'primary' : 'default'}
-              variant={selectedType === type ? 'filled' : 'outlined'}
-            />
-          ))}
-        </Box>
-      </Box>
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          Wine Collection
+        </Typography>
 
-      <Grid container spacing={3}>
-        {filteredProducts.map((product) => (
-          <Grid item xs={12} sm={6} md={4} key={product.id}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Card 
-                sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
+        <Box sx={{ mb: 4 }}>
+          <Tabs
+            value={selectedCategory}
+            onChange={(e, newValue) => handleCategoryChange(newValue)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+            centered
+            sx={{
+              '& .MuiTab-root': {
+                minWidth: 100,
+              },
+            }}
+          >
+            <Tab value="all" label="All" />
+            <Tab value="red" label="Red" />
+            <Tab value="white" label="White" />
+            <Tab value="rose" label="Rosé" />
+            <Tab value="sparkling" label="Sparkling" />
+          </Tabs>
+        </Box>
+
+        <Grid container spacing={4}>
+          {filteredProducts.map((product) => (
+            <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+              <Card
+                component={motion.div}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                sx={{
+                  height: '100%',
+                  display: 'flex',
                   flexDirection: 'column',
+                  position: 'relative',
                   '&:hover': {
                     transform: 'translateY(-4px)',
-                    transition: 'transform 0.3s ease-in-out',
-                    boxShadow: 4
-                  }
+                    boxShadow: (theme) => theme.shadows[4],
+                  },
+                  transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 }}
               >
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={product.imageUrl}
+                <LazyLoadImage
                   alt={product.name}
-                  sx={{ objectFit: 'cover' }}
-                  onClick={() => navigate(`/product/${product.id}`)}
-                  style={{ cursor: 'pointer' }}
+                  height={260}
+                  src={product.imageUrl || 'https://via.placeholder.com/300x400?text=No+Image'}
+                  width="100%"
+                  effect="blur"
+                  style={{ objectFit: 'cover' }}
+                  onError={handleImageError}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography gutterBottom variant="h6" component="h2">
+                  <Typography
+                    gutterBottom
+                    variant="h6"
+                    component="h2"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '1.1rem',
+                      lineHeight: 1.2,
+                      mb: 1,
+                    }}
+                  >
                     {product.name}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      mb: 1,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      height: '2.5em',
+                    }}
+                  >
                     {product.description}
                   </Typography>
-                  <Typography variant="h6" color="primary">
-                    ${product.price.toFixed(2)}
+                  <Typography
+                    variant="h6"
+                    color="primary"
+                    sx={{ fontWeight: 600 }}
+                  >
+                    ${product.price}
                   </Typography>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
                   <Button
                     size="small"
-                    variant="contained"
-                    startIcon={<AddShoppingCart />}
-                    onClick={() => handleAddToCart(product)}
-                    aria-label={`Add ${product.name} to cart`}
+                    variant="outlined"
+                    onClick={() => handleViewDetails(product.id)}
+                    aria-label={`View details for ${product.name}`}
                   >
-                    Add to Cart
+                    View Details
                   </Button>
-                  <IconButton
-                    onClick={() => handleToggleWishlist(product)}
-                    color={wishlist.some(item => item.id === product.id) ? 'primary' : 'default'}
-                    aria-label={`${wishlist.some(item => item.id === product.id) ? 'Remove from' : 'Add to'} wishlist`}
-                  >
-                    <Favorite />
-                  </IconButton>
+                  <Box>
+                    <IconButton
+                      onClick={() => handleToggleWishlist(product)}
+                      color={wishlistItems.some((item) => item.id === product.id) ? 'primary' : 'default'}
+                      size="small"
+                      aria-label={`${wishlistItems.some((item) => item.id === product.id) ? 'Remove from' : 'Add to'} wishlist`}
+                    >
+                      <Favorite />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => handleAddToCart(product)}
+                      color="primary"
+                      size="small"
+                      aria-label={`Add ${product.name} to cart`}
+                    >
+                      <AddShoppingCart />
+                    </IconButton>
+                  </Box>
                 </CardActions>
               </Card>
-            </motion.div>
-          </Grid>
-        ))}
-      </Grid>
-
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+        message={snackbar.message}
+      />
+    </PageContainer>
   );
 };
 

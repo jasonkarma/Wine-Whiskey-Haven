@@ -1,7 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
-  Container,
   Typography,
   Paper,
   Grid,
@@ -13,6 +12,7 @@ import {
   Divider,
   Button,
 } from '@mui/material';
+import PageContainer from '../components/layout/PageContainer';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -46,11 +46,17 @@ const Profile = () => {
   const displayUser = user || tempUser;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
+    <PageContainer>
       <Grid container spacing={4}>
         {/* Profile Overview */}
         <Grid item xs={12} md={4}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 3,
+              height: '100%'
+            }}
+          >
             <Box sx={{ textAlign: 'center', mb: 3 }}>
               <Avatar
                 sx={{
@@ -97,7 +103,13 @@ const Profile = () => {
 
         {/* Order History */}
         <Grid item xs={12} md={8}>
-          <Paper elevation={3} sx={{ p: 3 }}>
+          <Paper 
+            elevation={3} 
+            sx={{ 
+              p: 3,
+              height: '100%'
+            }}
+          >
             <Typography variant="h6" gutterBottom>
               Order History
             </Typography>
@@ -142,7 +154,7 @@ const Profile = () => {
           </Paper>
         </Grid>
       </Grid>
-    </Container>
+    </PageContainer>
   );
 };
 

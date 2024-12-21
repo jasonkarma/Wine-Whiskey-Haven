@@ -30,7 +30,7 @@ const Wishlist = () => {
 
   if (wishlistItems.length === 0) {
     return (
-      <Container sx={{ py: 8 }}>
+      <Container sx={{ py: { xs: 12, sm: 14 } }}>
         <Box textAlign="center">
           <Typography variant="h4" gutterBottom>
             Your Wishlist is Empty
@@ -44,8 +44,8 @@ const Wishlist = () => {
   }
 
   return (
-    <Container sx={{ py: 8 }}>
-      <Typography variant="h4" gutterBottom>
+    <Container sx={{ py: { xs: 12, sm: 14 } }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
         My Wishlist
       </Typography>
       <Grid container spacing={4}>

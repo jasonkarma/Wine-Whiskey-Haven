@@ -6,11 +6,13 @@ const theme = createTheme({
       main: '#800020', // Deep burgundy
       light: '#a33',
       dark: '#600018',
+      contrastText: '#ffffff',
     },
     secondary: {
       main: '#FFD700', // Gold
       light: '#ffe033',
       dark: '#ccac00',
+      contrastText: '#000000',
     },
     background: {
       default: '#F5F5F5', // Off-white
@@ -25,33 +27,51 @@ const theme = createTheme({
     fontFamily: '"Playfair Display", "Roboto", "Arial", sans-serif',
     h1: {
       fontWeight: 700,
-      fontSize: '2.5rem',
+      fontSize: '2rem',
       '@media (min-width:600px)': {
+        fontSize: '2.5rem',
+      },
+      '@media (min-width:960px)': {
         fontSize: '3.5rem',
       },
     },
     h2: {
       fontWeight: 600,
-      fontSize: '2rem',
+      fontSize: '1.75rem',
       '@media (min-width:600px)': {
+        fontSize: '2rem',
+      },
+      '@media (min-width:960px)': {
         fontSize: '2.5rem',
       },
     },
     h3: {
       fontWeight: 600,
-      fontSize: '1.75rem',
+      fontSize: '1.5rem',
+      '@media (min-width:600px)': {
+        fontSize: '1.75rem',
+      },
     },
     h4: {
       fontWeight: 500,
-      fontSize: '1.5rem',
+      fontSize: '1.25rem',
+      '@media (min-width:600px)': {
+        fontSize: '1.5rem',
+      },
     },
     body1: {
-      fontSize: '1rem',
+      fontSize: '0.875rem',
+      '@media (min-width:600px)': {
+        fontSize: '1rem',
+      },
       lineHeight: 1.6,
     },
-    button: {
-      textTransform: 'none',
-      fontWeight: 500,
+    body2: {
+      fontSize: '0.75rem',
+      '@media (min-width:600px)': {
+        fontSize: '0.875rem',
+      },
+      lineHeight: 1.5,
     },
   },
   components: {
@@ -59,12 +79,10 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 8,
-          padding: '8px 24px',
-        },
-        contained: {
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: '0px 2px 4px rgba(0,0,0,0.2)',
+          textTransform: 'none',
+          padding: '8px 16px',
+          '@media (max-width:600px)': {
+            width: '100%',
           },
         },
       },
@@ -73,11 +91,45 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 12,
-          boxShadow: '0px 4px 12px rgba(0,0,0,0.05)',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+        },
+      },
+    },
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          '@media (max-width:600px)': {
+            padding: '16px',
+          },
+          paddingTop: '64px', // Height of navbar
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          zIndex: 1200,
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          marginTop: '8px',
         },
       },
     },
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 960,
+      lg: 1280,
+      xl: 1920,
+    },
+  },
+  spacing: 8,
 });
 
 export default theme;

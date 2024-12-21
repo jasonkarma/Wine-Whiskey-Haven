@@ -1,39 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
-  Container,
+  Box,
   Typography,
   Grid,
-  Card,
-  CardContent,
-  CardMedia,
   Button,
+  CardMedia,
   IconButton,
-  Box,
-  Divider,
-  TextField,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
+  Divider,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
 } from '@mui/material';
-import {
-  Add,
-  Remove,
-  Delete,
-  LocalShipping,
-  DeliveryDining,
-} from '@mui/icons-material';
-import {
-  removeFromCart,
-  updateQuantity,
-  setDeliveryOption,
-} from '../redux/slices/cartSlice';
+import { Add, Remove, Delete } from '@mui/icons-material';
+import { removeFromCart, updateQuantity, setDeliveryOption } from '../redux/slices/cartSlice';
+import PageContainer from '../components/layout/PageContainer';
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -90,29 +74,31 @@ const Cart = () => {
 
   if (items.length === 0) {
     return (
-      <Container maxWidth="lg" sx={{ py: 8, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
-          Your Cart is Empty
-        </Typography>
-        <Typography variant="body1" color="text.secondary" paragraph>
-          Looks like you haven't added any items to your cart yet.
-        </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/')}
-          sx={{ mt: 2 }}
-        >
-          Continue Shopping
-        </Button>
-      </Container>
+      <PageContainer maxWidth="lg">
+        <Box textAlign="center">
+          <Typography variant="h4" gutterBottom>
+            Your Cart is Empty
+          </Typography>
+          <Typography variant="body1" color="text.secondary" paragraph>
+            Looks like you haven't added any items to your cart yet.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/')}
+            sx={{ mt: 2 }}
+          >
+            Continue Shopping
+          </Button>
+        </Box>
+      </PageContainer>
     );
   }
 
   const totals = calculateTotal();
 
   return (
-    <Container maxWidth="lg" sx={{ py: 8 }}>
+    <PageContainer maxWidth="lg">
       <Typography variant="h3" gutterBottom sx={{ fontFamily: 'Playfair Display' }}>
         Shopping Cart
       </Typography>
@@ -186,97 +172,62 @@ const Cart = () => {
         {/* Order Summary */}
         <Grid item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <Typography variant="h5" gutterBottom>
+            <Typography variant="h6" gutterBottom>
               Order Summary
             </Typography>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Subtotal: ${totals.subtotal.toFixed(2)}
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 1 }}>
+                Delivery Fee: ${totals.deliveryFee.toFixed(2)}
+              </Typography>
+              <Typography variant="h6" color="primary">
+                Total: ${totals.total.toFixed(2)}
+              </Typography>
+            </Box>
 
-            <FormControl fullWidth sx={{ mb: 3 }}>
-              <InputLabel>Delivery Option</InputLabel>
-              <Select
-                value={deliveryOption || ''}
+            <Typography variant="h6" gutterBottom>
+              Delivery Options
+            </Typography>
+            <FormControl component="fieldset">
+              <RadioGroup
+                aria-label="delivery-option"
+                name="delivery-option"
+                value={deliveryOption}
                 onChange={handleDeliveryOptionChange}
-                label="Delivery Option"
               >
-                <MenuItem value="ubereats">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <DeliveryDining sx={{ mr: 1 }} />
-                    UberEats (${deliveryOptions.ubereats.fee})
-                  </Box>
-                </MenuItem>
-                <MenuItem value="foodpanda">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <DeliveryDining sx={{ mr: 1 }} />
-                    Foodpanda (${deliveryOptions.foodpanda.fee})
-                  </Box>
-                </MenuItem>
-                <MenuItem value="standard_shipping">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <LocalShipping sx={{ mr: 1 }} />
-                    Standard Shipping (${deliveryOptions.standard_shipping.fee})
-                  </Box>
-                </MenuItem>
-                <MenuItem value="express_shipping">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <LocalShipping sx={{ mr: 1 }} />
-                    Express Shipping (${deliveryOptions.express_shipping.fee})
-                  </Box>
-                </MenuItem>
-              </Select>
+                {Object.entries(deliveryOptions).map(([key, option]) => (
+                  <FormControlLabel
+                    key={key}
+                    value={key}
+                    control={<Radio />}
+                    label={
+                      <Box>
+                        <Typography variant="body1">{option.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          ${option.fee.toFixed(2)} - {option.estimatedTime}
+                        </Typography>
+                      </Box>
+                    }
+                  />
+                ))}
+              </RadioGroup>
             </FormControl>
-
-            {deliveryOption && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Estimated delivery time:
-                </Typography>
-                <Typography variant="body1">
-                  {deliveryOptions[deliveryOption].estimatedTime}
-                </Typography>
-              </Box>
-            )}
-
-            <List>
-              <ListItem>
-                <ListItemText primary="Subtotal" />
-                <Typography>${totals.subtotal.toFixed(2)}</Typography>
-              </ListItem>
-              <ListItem>
-                <ListItemText primary="Delivery Fee" />
-                <Typography>${totals.deliveryFee.toFixed(2)}</Typography>
-              </ListItem>
-              <Divider />
-              <ListItem>
-                <ListItemText primary="Total" />
-                <Typography variant="h6" color="primary">
-                  ${totals.total.toFixed(2)}
-                </Typography>
-              </ListItem>
-            </List>
 
             <Button
               variant="contained"
               color="primary"
-              size="large"
               fullWidth
-              onClick={() => navigate('/checkout')}
-              disabled={!deliveryOption}
-              sx={{ mt: 2 }}
+              size="large"
+              sx={{ mt: 3 }}
             >
               Proceed to Checkout
-            </Button>
-
-            <Button
-              variant="outlined"
-              fullWidth
-              onClick={() => navigate('/')}
-              sx={{ mt: 2 }}
-            >
-              Continue Shopping
             </Button>
           </Paper>
         </Grid>
       </Grid>
-    </Container>
+    </PageContainer>
   );
 };
 

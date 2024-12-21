@@ -142,6 +142,25 @@ const Navbar = () => {
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
           onClose={handleProfileMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          sx={{
+            '& .MuiPaper-root': {
+              mt: 1,
+              minWidth: 180,
+            }
+          }}
+          onTransitionEnd={() => {
+            if (!Boolean(anchorEl)) {
+              setAnchorEl(null);
+            }
+          }}
         >
           <MenuItem onClick={() => {
             navigate('/profile');

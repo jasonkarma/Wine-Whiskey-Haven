@@ -24,7 +24,7 @@ import { toggleWishlist } from '../redux/slices/wishlistSlice';
 import { isIOSDevice, setupIOSHandlers, cleanupIOSHandlers, handleIOSError } from '../utils/iosHelpers';
 import PageContainer from '../components/layout/PageContainer';
 
-const WhiskeyMenu = () => {
+const WineMenu = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [products, setProducts] = useState([]);
@@ -34,67 +34,33 @@ const WhiskeyMenu = () => {
   const wishlistItems = useSelector((state) => state.wishlist.items);
 
   useEffect(() => {
-    const fetchWhiskeys = async () => {
+    const fetchWines = async () => {
       try {
         setLoading(true);
         const allProducts = await getProducts();
         
         // Create a Map to ensure unique products by ID
         const uniqueProductsMap = new Map();
-        
         allProducts.forEach(product => {
-          // Normalize the category
-          let category = (product.category || '').toLowerCase();
-          const type = (product.type || '').toLowerCase();
-          
-          // If it's a whiskey type, ensure it has a proper category
-          if (type === 'whiskey' || category === 'whiskey') {
-            // Try to determine the specific category from the name or description
-            const name = (product.name || '').toLowerCase();
-            const description = (product.description || '').toLowerCase();
-            
-            if (name.includes('scotch') || description.includes('scotch')) {
-              category = 'scotch';
-            } else if (name.includes('bourbon') || description.includes('bourbon')) {
-              category = 'bourbon';
-            } else if (name.includes('irish') || description.includes('irish')) {
-              category = 'irish';
-            } else if (name.includes('japanese') || description.includes('japanese')) {
-              category = 'japanese';
-            }
-          }
-          
-          // Only add the product if it's a whiskey or belongs to a whiskey category
-          if (type === 'whiskey' || category === 'whiskey' || 
-              ['scotch', 'bourbon', 'irish', 'japanese'].includes(category)) {
-            
-            // If the product already exists, only update if it has more complete data
-            const existingProduct = uniqueProductsMap.get(product.id);
-            if (!existingProduct || 
-                (product.category && !existingProduct.category) || 
-                (product.type && !existingProduct.type)) {
-              uniqueProductsMap.set(product.id, {
-                ...product,
-                category: category // Use the normalized category
-              });
-            }
+          if (['red', 'white', 'rose', 'sparkling'].includes(product.category)) {
+            uniqueProductsMap.set(product.id, product);
           }
         });
         
         // Convert Map back to array
-        const whiskeys = Array.from(uniqueProductsMap.values());
-        setProducts(whiskeys);
+        const wines = Array.from(uniqueProductsMap.values());
+        setProducts(wines);
         setError('');
       } catch (err) {
-        console.error('Error fetching whiskeys:', err);
-        setError('Failed to load whiskeys');
-        toast.error('Failed to load whiskeys');
+        console.error('Error fetching wines:', err);
+        setError('Failed to load wines');
+        toast.error('Failed to load wines');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWhiskeys();
+    fetchWines();
   }, []);
 
   // Handle mobile-specific setup
@@ -130,14 +96,11 @@ const WhiskeyMenu = () => {
 
   const filteredProducts = selectedCategory === 'all'
     ? products
-    : products.filter(product => {
-        const category = (product.category || '').toLowerCase();
-        return category === selectedCategory.toLowerCase();
-      });
+    : products.filter(product => product.category === selectedCategory);
 
   const handleImageError = (e) => {
     e.target.onerror = null;
-    e.target.src = 'https://via.placeholder.com/300x400?text=Image+Not+Found';
+    e.target.src = 'https://via.placeholder.com/300x400?text=No+Image';
   };
 
   if (loading) {
@@ -178,7 +141,7 @@ const WhiskeyMenu = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          Whiskey Collection
+          Wine Collection
         </Typography>
 
         <Box sx={{ mb: 4 }}>
@@ -196,10 +159,10 @@ const WhiskeyMenu = () => {
             }}
           >
             <Tab value="all" label="All" />
-            <Tab value="scotch" label="Scotch" />
-            <Tab value="bourbon" label="Bourbon" />
-            <Tab value="irish" label="Irish" />
-            <Tab value="japanese" label="Japanese" />
+            <Tab value="red" label="Red" />
+            <Tab value="white" label="White" />
+            <Tab value="rose" label="Rosé" />
+            <Tab value="sparkling" label="Sparkling" />
           </Tabs>
         </Box>
 
@@ -310,4 +273,4 @@ const WhiskeyMenu = () => {
   );
 };
 
-export default WhiskeyMenu;
+export default WineMenu;

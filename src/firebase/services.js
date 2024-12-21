@@ -198,7 +198,7 @@ export const updateWishlist = async (userId, wishlistItems) => {
   }
 };
 
-// Add default image URLs for products
+// Update product images
 export const updateProductImages = async () => {
   try {
     const products = await getProducts();
@@ -218,6 +218,7 @@ export const updateProductImages = async () => {
       'lagavulin': 'https://www.my9.com.tw/cdn/shop/files/M14103-2_33b90fb7-b0bd-4fe6-8745-08867b2112a0_2000x.png?v=1688546715',
 
       // Wine mappings
+      'provence rosé': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSs__Ry9Bkyk5ahceL5cnAPG1zMLVU2v1qZnA&s',
       'cabernet': 'https://cdn.shopify.com/s/files/1/0028/9669/1264/files/I26705-10_900x.png?v=1721295770',
       'merlot': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwZ0lH8nmKTkXxynhrrqyFImv9s2RKb_2PoA&s',
       'pinot noir': 'https://www.maset.com/cdnassets/products/red-wines/lg/bottle/pinot-noir-lg-1.png',
@@ -230,72 +231,96 @@ export const updateProductImages = async () => {
       'prosecco': 'https://i.ibb.co/C6v0XZv/prosecco.png'
     };
 
-    // Default category images for products without specific mappings
+    // Default category images
     const defaultImageUrls = {
       whiskey: 'https://cdn1.cybassets.com/media/W1siZiIsIjEzODc5L3Byb2R1Y3RzLzM1MjU0MzY4LzE2MzU4NDc0NThfYTEwM2I5NjI1ZmQ3N2JmZDdjNWMuanBlZyJdLFsicCIsInRodW1iIiwiNjAweDYwMCJdXQ.jpeg?sha=9c0a7cef0089130b',
       wine: 'https://vineum.tw/wp-content/uploads/2023/08/%E6%9C%AA%E5%91%BD%E5%90%8D-3-2.png'
     };
 
-    const seenProducts = new Map();
-    const productsToUpdate = [];
+    const updates = [];
 
     for (const product of products) {
-      if (!product || !product.name || !product.category) continue;
-      
-      const productKey = `${product.name}-${product.category}`.toLowerCase();
-      
-      if (!seenProducts.has(productKey)) {
-        seenProducts.set(productKey, product.id);
+      try {
+        const docRef = doc(db, 'products', product.id);
+        const docSnap = await getDoc(docRef);
         
-        // Find the matching image URL for the product
-        let imageUrl = null;
-        const productNameLower = product.name.toLowerCase();
+        // Keep existing image URL if it exists and is valid
+        let imageUrl = product.imageUrl;
         
-        // Check for exact product name match
-        for (const [productName, url] of Object.entries(productImageMap)) {
-          if (productNameLower.includes(productName)) {
-            imageUrl = url;
-            break;
+        // If no image URL or need to update, find appropriate one
+        if (!imageUrl) {
+          const productNameLower = product.name.toLowerCase();
+          
+          // Try to find matching image URL
+          for (const [key, url] of Object.entries(productImageMap)) {
+            if (productNameLower.includes(key)) {
+              imageUrl = url;
+              break;
+            }
+          }
+          
+          // Use default category image if no specific match found
+          if (!imageUrl) {
+            imageUrl = defaultImageUrls[product.category] || defaultImageUrls.wine;
           }
         }
-        
-        // If no specific image found, use category default
-        if (!imageUrl) {
-          imageUrl = defaultImageUrls[product.category] || defaultImageUrls.wine;
+
+        if (docSnap.exists()) {
+          updates.push(
+            updateDoc(docRef, {
+              imageUrl: imageUrl
+            })
+          );
+        } else {
+          // If document doesn't exist, create it with all product data
+          updates.push(
+            setDoc(docRef, {
+              ...product,
+              imageUrl: imageUrl
+            })
+          );
         }
         
-        // Only update if the image URL is different or missing
-        if (!product.imageUrl || product.imageUrl !== imageUrl) {
-          productsToUpdate.push({
-            id: product.id,
-            imageUrl: imageUrl,
-            name: product.name,
-            category: product.category
-          });
-        }
+        console.log(`Updated/created product ${product.id} with image: ${imageUrl}`);
+      } catch (error) {
+        console.warn(`Error updating product ${product.id}:`, error);
       }
     }
 
-    // Batch update all products that need new images
-    if (productsToUpdate.length > 0) {
-      console.log(`Updating images for ${productsToUpdate.length} products:`, 
-        productsToUpdate.map(p => `${p.name} (${p.category})`));
-      
-      await Promise.all(
-        productsToUpdate.map(async ({ id, imageUrl }) => {
-          try {
-            await updateProduct(id, { imageUrl });
-            console.log(`Updated image for product ${id}`);
-          } catch (error) {
-            console.error(`Failed to update image for product ${id}:`, error);
-          }
-        })
-      );
-    }
-
-    return true;
+    await Promise.all(updates);
+    console.log('Product images updated successfully');
   } catch (error) {
     console.error('Error updating product images:', error);
+    throw error;
+  }
+};
+
+// Clean up duplicate products
+export const cleanupDuplicateProducts = async () => {
+  try {
+    const products = await getProducts();
+    const uniqueProducts = new Map();
+    const duplicates = [];
+
+    // Find duplicates
+    products.forEach(product => {
+      const key = product.id;
+      if (uniqueProducts.has(key)) {
+        duplicates.push(product);
+      } else {
+        uniqueProducts.set(key, product);
+      }
+    });
+
+    // Delete duplicates
+    for (const duplicate of duplicates) {
+      await deleteProduct(duplicate.id);
+    }
+
+    console.log(`Cleaned up ${duplicates.length} duplicate products`);
+    return duplicates.length;
+  } catch (error) {
+    console.error('Error cleaning up duplicates:', error);
     throw error;
   }
 };
